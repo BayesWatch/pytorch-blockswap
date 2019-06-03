@@ -5,7 +5,7 @@ It is adapted from the original [Moonshine repository](https://github.com/BayesW
 
 For a network composed of *N* stacked blocks, BlockSwap (uniformly) randomly suggests lists of *N* possible convolution alternatives based on some desirable metric (a parameter budget, number of multiply-accumulate ops, inference time etc.). It ranks the samples using *Fisher potential* as a proxy for trained accuracy and then returns the best one:
 
-![alt text](notebooks/search.gif)
+![alt text](search.gif)
 
 ## Repository layout
 - `checkpoints/` is used to save trained models
