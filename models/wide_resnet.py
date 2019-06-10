@@ -26,7 +26,7 @@ def parse_options(convtype, blocktype):
     return conv, block
 
 class WideResNet(nn.Module):
-    def __init__(self, depth, widen_factor, conv, block, num_classes=100, dropRate=0.0, s=1, convs=[], masked=False):
+    def __init__(self, depth, widen_factor, conv, block, num_classes=10, dropRate=0.0, s=1, convs=[], masked=False):
         super(WideResNet, self).__init__()
         self.depth = depth
         self.widen_factor = widen_factor
