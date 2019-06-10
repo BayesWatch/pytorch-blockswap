@@ -81,7 +81,7 @@ def rank_at_param_goal(param_goal):
         for j, c in enumerate(convs):
             student = update_block(j, student, c)
 
-        params, fish = one_shot_fisher(student, train, 10)
+        params, fish = one_shot_fisher(student, train, 1)
         fish = float(sum(fish.values()))
 
         df.append([i, convs, row['params'], fish])
