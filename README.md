@@ -1,6 +1,6 @@
 # [BlockSwap: Fisher-guided block substitution for network compression](https://arxiv.org/abs/1906.04113)
 
-This repository contains the code used to produce BlockSwap.
+This repository contains the code used to produce BlockSwap ([paper](https://arxiv.org/abs/1906.04113)) .
 It is adapted from the original [Moonshine repository](https://github.com/BayesWatch/pytorch-moonshine).
 
 For a network composed of *N* stacked blocks, BlockSwap (uniformly) randomly suggests lists of *N* possible convolution alternatives based on some desirable metric (a parameter budget, number of multiply-accumulate ops, inference time etc.). It ranks the samples using *Fisher potential* as a proxy for trained accuracy and then returns the best one:
