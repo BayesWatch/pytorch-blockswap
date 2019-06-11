@@ -1,4 +1,4 @@
-# [BlockSwap: Fisher-guided block substitution for network compression](https://arxiv.org)
+# [BlockSwap: Fisher-guided block substitution for network compression](https://arxiv.org/abs/1906.04113)
 
 This repository contains the code used to produce BlockSwap.
 It is adapted from the original [Moonshine repository](https://github.com/BayesWatch/pytorch-moonshine).
@@ -47,4 +47,15 @@ https://github.com/szagoruyko/attention-transfer
 https://github.com/kuangliu/pytorch-cifar
 https://github.com/xternalz/WideResNet-pytorch
 https://github.com/ShichenLiu/CondenseNet
+```
+
+## Citing us 
+If you use this work, please consider citing us:
+```
+@article{turner2019blockswap,
+  title={Block{S}wap: Fisher-guided Block Substitution for Network Compression},
+  author={Turner, Jack and Crowley, Elliot J and Gray, Gavin and Storkey, Amos and O'Boyle, Michael},
+  journal={arXiv preprint arXiv:1906.04113},
+  year={2019},
+}
 ```
