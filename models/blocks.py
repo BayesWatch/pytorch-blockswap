@@ -283,6 +283,17 @@ class DConv3D(nn.Module):
         # n, c, d, w, h = o.size()
         return self.conv3d(o).mean(2)
 
+## MISCELLANEOUS BLOCKS
+class DARTSConv(nn.Module):
+    def __init__(self, in_planes, out_planes, stride=1, kernel_size=3, padding=1, bias=False, groups=None):
+        super(DARTSConv, self).__init__()
+        self.convdw = nn.Conv2d(in_planes, in_planes, kernel_size=kernel_size, stride=stride, padding=padding,
+                                bias=bias, groups=in_planes)
+        self.conv1x1 = nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=(1,1), padding=(1,1), bias=bias)
+        self.bn = nn.BatchNorm2d(out_planes)
+    def forward(self, x):
+        return self.bn(self.conv1x1(self.convdw(F.relu(x))))
+
 def block_function(blocktype):
     if blocktype == 'Basic':
         block = BasicBlock
@@ -295,6 +306,8 @@ def block_function(blocktype):
 def conv_function(convtype):
     if convtype == 'Conv':
         conv = Conv
+    elif convtype == 'MBConv6':
+        conv = MBConv6
     elif convtype == 'DConv':
         conv = DConv
     elif convtype == 'DConvG2':
@@ -362,6 +375,26 @@ def conv_function(convtype):
     else:
         raise ValueError('Conv "%s" not recognised' % convtype)
     return conv
+
+class MBConv6(nn.Module):
+    '''expand + depthwise + pointwise'''
+    def __init__(self, in_planes, out_planes, stride=1,kernel_size=3,padding=1, bias=False, expansion=6):
+        super(MBConv6, self).__init__()
+        self.stride = stride
+
+        planes = expansion * in_planes
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=1, stride=1, padding=0, bias=False)
+        self.bn1   = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, groups=planes, bias=False)
+        self.bn2   = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, out_planes, kernel_size=1, stride=1, padding=0, bias=False)
+        self.bn3   = nn.BatchNorm2d(out_planes)
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = F.relu(self.bn2(self.conv2(out)))
+        out = self.bn3(self.conv3(out))
+        return out
 
 class BasicBlock(nn.Module):
     def __init__(self, in_planes, out_planes, stride, dropRate=0.0, conv=Conv):
@@ -688,6 +721,38 @@ class BottleBlock(nn.Module):
         out = out
         return torch.add(x if self.equalInOut else self.convShortcut(x), out)
 
+
+class DARTSBlock(nn.Module):
+    def __init__(self, in_planes, out_planes, stride, dropRate=0.0, conv=Conv):
+        super(DARTSBlock, self).__init__()
+        self.relu1 = nn.ReLU(inplace=True)
+        self.conv1 = nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False, groups=in_planes)
+        self.conv2 = nn.Conv2d(out_planes, out_planes, kernel_size=1, stride=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(in_planes)
+
+        self.relu2 = nn.ReLU(inplace=True)
+        self.conv3 = nn.Conv2d(out_planes, out_planes, kernel_size=3, stride=1,
+                               padding=1, bias=False, groups=out_planes)
+        self.conv4 = nn.Conv2d(out_planes, out_planes, kernel_size=1, stride=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_planes)
+
+        self.droprate = dropRate
+        self.equalInOut = (in_planes == out_planes)
+        self.convShortcut = (not self.equalInOut) and nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride,
+                               padding=0, bias=False) or None
+
+    def forward(self, x):
+        if not self.equalInOut:
+            x = self.relu1(self.bn1(x))
+        else:
+            out = self.relu1(self.bn1(x))
+
+        out = self.conv2(self.conv1(out if self.equalInOut else x))
+        out = self.conv4(self.conv3(self.relu1(self.bn2(out))))
+
+        return torch.add(x if self.equalInOut else self.convShortcut(x), out)
+
 get_block_type = {
     Conv        : BasicBlock,
     DConvA2     : BasicBlock,
@@ -712,7 +777,8 @@ get_block_type = {
     G4B4        : BottleBlock,
     G2B4        : BottleBlock,
     G8B4        : BottleBlock,
-    DConvB4     : BottleBlock
+    DConvB4     : BottleBlock,
+    MBConv6      : BottleBlock
 }
 
 def update_block(index, model, new_conv, mask=True):
@@ -740,8 +806,9 @@ def update_block(index, model, new_conv, mask=True):
 
 
 class NetworkBlock(nn.Module):
-    def __init__(self, nb_layers, in_planes, out_planes, stride, dropRate=0.0, convs=[Conv,Conv], masked=False):
+    def __init__(self, nb_layers, in_planes, out_planes, stride, dropRate=0.0, convs=[Conv,Conv], masked=False, darts=False):
         super(NetworkBlock, self).__init__()
+
         blocks = [get_block_type[conv] for conv in convs]
         if get_block_type[convs[0]] == BasicBlock:
             block = MaskBlock
@@ -750,6 +817,9 @@ class NetworkBlock(nn.Module):
 
         if masked:
             blocks = [block for conv in convs]
+
+        if darts:
+            blocks = [DARTSBlock] * nb_layers
 
         self.layer = self._make_layer(blocks, in_planes, out_planes, nb_layers, stride, dropRate, convs)
         self.masked     = masked

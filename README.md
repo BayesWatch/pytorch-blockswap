@@ -1,41 +1,35 @@
-# [BlockSwap: Fisher-guided block substitution for network compression](https://arxiv.org/abs/1906.04113)
+# [BlockSwap: Fisher-guided Block Substitution for Network Compression on a Budget](https://arxiv.org/abs/1906.04113)
 
 This repository contains the code used to produce BlockSwap ([paper](https://arxiv.org/abs/1906.04113)) .
-It is adapted from the original [Moonshine repository](https://github.com/BayesWatch/pytorch-moonshine).
 
-For a network composed of *N* stacked blocks, BlockSwap (uniformly) randomly suggests lists of *N* possible convolution alternatives based on some desirable metric (a parameter budget, number of multiply-accumulate ops, inference time etc.). It ranks the samples using *Fisher potential* as a proxy for trained accuracy and then returns the best one:
+For a network composed of *N* stacked blocks, BlockSwap (uniformly) randomly suggests lists of *N* possible convolution alternatives based on a parameter budget. It ranks the samples using *Fisher potential* as a proxy for trained accuracy and then returns the best one:
 
 ![alt text](search.gif)
 
 ## Repository layout
 - `checkpoints/` is used to save trained models
-- `genotypes/` is used to store `.csv` files that contain network configurations chosen by BlockSwap
-- `archs/` can be used to save large dataframes containing pre-sorted random configurations. For example, we could randomly generate architectures, get their parameter count, and save them. Then when we go to do Fisher ranking we can quickly get random samples by indexing the dataframe to return rows that satisfy our parameter budget
+- `genotypes/` is used to store `.csv` files that contain network configurations chosen by BlockSwap. We have also included the exact models from the paper for reference.
 - `models/` contains PyTorch definitions for all of the models and blocktypes that we used
     - `models/blocks.py` is where all of the block substitutions live
-- `count_ops.py` contains basic model measurement functions
-- `funcs.py` contains useful operations that are used throughout the repository. It also includes random configuration sampling code.
+- `utils.py` contains useful operations that are used throughout the repository. It also includes random configuration sampling code.
     - `one_shot_fisher` is the function used to get the Fisher potential of a given network
-    - `cifar_random_search` writes a dataframe of random configs to `archs/` to later be Fisher-ranked
-- `fisher_rank.py` ranks random configurations at a given parameter goal
-- `main.py` can train your selected network
+- `model_generator.py` ranks random configurations at a given parameter goal
+- `train.py` can train your selected network
 
 ## Running the experiments
-First, train a teacher network on a dataset of your choice. For example, to use CIFAR-10:
+First, train a teacher network:
+
 ```bash
-python main.py cifar10 teacher --conv Conv -t wrn_40_2_1 --wrn_depth 40 --wrn_width 2 --cifar_loc='<path-to-data>' --GPU '0,1'
+python train.py teacher -t wrn_40_2 --wrn_depth 40 --wrn_width 2 --data_loc='<path-to-data>' --GPU 0
 ```
 
-To run the baseline Moonshine networks, use `bash/moonshine.sh`.
-
-The next step is to generate a dataframe of random network configurations, then set some parameter goal and sample:
+Then you can generate student networks for a parameter goal of your choice:
+```bash
+python model_generator.py cifar10 --data_loc='<path-to-data>' --param_goal $p
 ```
-python fisher_rank.py cifar10 --generate_random
-python fisher_rank.py cifar10 --data_loc='<path-to-data>' --param_goal $p
-```
-This will save `.csv` files each time a new "best" model is found. Train the highest numbered genotype using:
-```
-python main.py cifar10 student --conv Conv -t wrn_40_2 -s wrn_40_2_<genotype-num> --wrn_depth 40 --wrn_width 2 --cifar_loc='<path-to-data>'  --GPU 0 --from_genotype './genotypes/<genotype-num>.csv'
+This will save a `.csv` file containing the generated architecture. Train the network using the following command:
+```bash
+python train.py student -t wrn_40_2 -s wrn_40_2_<genotype-num> --wrn_depth 40 --wrn_width 2 --data_loc='<path-to-data>'  --GPU 0 --from_genotype './genotypes/<genotype-num>.csv'
 ```
 
 ## Acknowledgements
@@ -49,13 +43,15 @@ https://github.com/xternalz/WideResNet-pytorch
 https://github.com/ShichenLiu/CondenseNet
 ```
 
-## Citing us 
-If you use this work, please consider citing us:
+## Citing us
+If you find this work helpful, please consider citing us:
 ```
-@article{turner2019blockswap,
-  title={Block{S}wap: Fisher-guided Block Substitution for Network Compression},
-  author={Turner, Jack and Crowley, Elliot J and Gray, Gavin and Storkey, Amos and O'Boyle, Michael},
-  journal={arXiv preprint arXiv:1906.04113},
-  year={2019},
+@inproceedings{
+Turner2020BlockSwap:,
+title={BlockSwap: Fisher-guided Block Substitution for Network Compression on a Budget},
+author={Jack Turner and Elliot J. Crowley and Michael O'Boyle and Amos Storkey and Gavin Gray},
+booktitle={International Conference on Learning Representations},
+year={2020},
+url={https://openreview.net/forum?id=SklkDkSFPB}
 }
 ```

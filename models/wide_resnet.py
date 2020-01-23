@@ -26,7 +26,7 @@ def parse_options(convtype, blocktype):
     return conv, block
 
 class WideResNet(nn.Module):
-    def __init__(self, depth, widen_factor, conv, block, num_classes=10, dropRate=0.0, s=1, convs=[], masked=False):
+    def __init__(self, depth, widen_factor, conv=Conv, block=BasicBlock, num_classes=10, dropRate=0.0, s=1, convs=[], masked=False, darts=False):
         super(WideResNet, self).__init__()
         self.depth = depth
         self.widen_factor = widen_factor
@@ -57,21 +57,21 @@ class WideResNet(nn.Module):
         self.block1 = torch.nn.ModuleList()
         for i in range(s):
             self.block1.append(NetworkBlock(nb_layers, nChannels[0] if i == 0 else nChannels[1],
-                                            nChannels[1], 1, dropRate, convs[l:l+nb_layers], masked=masked))
+                                            nChannels[1], 1, dropRate, convs[l:l+nb_layers], masked=masked, darts=darts))
         l += nb_layers * s
 
         # 2nd block
         self.block2 = torch.nn.ModuleList()
         for i in range(s):
             self.block2.append(NetworkBlock(nb_layers, nChannels[1] if i == 0 else nChannels[2],
-                                            nChannels[2], 2 if i == 0 else 1, dropRate, convs[l:l+nb_layers], masked=masked))
+                                            nChannels[2], 2 if i == 0 else 1, dropRate, convs[l:l+nb_layers], masked=masked, darts=darts))
         l += nb_layers * s
 
         # 3rd block
         self.block3 = torch.nn.ModuleList()
         for i in range(s):
             self.block3.append(NetworkBlock(nb_layers, nChannels[2] if i == 0 else nChannels[3],
-                                            nChannels[3], 2 if i == 0 else 1, dropRate, convs[l:l+nb_layers], masked=masked))
+                                            nChannels[3], 2 if i == 0 else 1, dropRate, convs[l:l+nb_layers], masked=masked, darts=darts))
         l += nb_layers * s
 
 
