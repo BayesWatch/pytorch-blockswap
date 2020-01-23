@@ -25,7 +25,7 @@ python train.py teacher -t wrn_40_2 --wrn_depth 40 --wrn_width 2 --data_loc='<pa
 
 Then you can generate student networks for a parameter goal of your choice:
 ```bash
-python model_generator.py cifar10 --data_loc='<path-to-data>' --param_goal $p
+python model_generator.py --data_loc='<path-to-data>' --param_goal $p
 ```
 This will save a `.csv` file containing the generated architecture. Train the network using the following command:
 ```bash
