@@ -4,7 +4,15 @@ This repository contains the code used to produce BlockSwap ([paper](https://arx
 
 For a network composed of *N* stacked blocks, BlockSwap (uniformly) randomly suggests lists of *N* possible convolution alternatives based on a parameter budget. It ranks the samples using *Fisher potential* as a proxy for trained accuracy and then returns the best one:
 
-![alt text](search.gif)
+![alt text](resources/search.gif)
+
+## Setup
+
+Install the requirements via [anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html#):
+
+```
+
+```
 
 ## Repository layout
 - `checkpoints/` is used to save trained models
@@ -16,18 +24,30 @@ For a network composed of *N* stacked blocks, BlockSwap (uniformly) randomly sug
 - `model_generator.py` ranks random configurations at a given parameter goal
 - `train.py` can train your selected network
 
-## Running the experiments
-First, train a teacher network:
+## Running the experiments from the paper
+
+The general outline for using this code is as follows:
+1. Train your original network (the network you would like to compress, also called the *teacher*)
+2. Generate and rank possible student networks for a given parameter budget
+3. Train the highest ranking student network
+
+These steps are illustrate below:
+
+**1. Train your original network**  
 
 ```bash
 python train.py teacher -t wrn_40_2 --wrn_depth 40 --wrn_width 2 --data_loc='<path-to-data>' --GPU 0
 ```
 
+**2. Generate and rank possible student networks for a given parameter budget**  
 Then you can generate student networks for a parameter goal of your choice:
 ```bash
 python model_generator.py --data_loc='<path-to-data>' --param_goal $p
 ```
-This will save a `.csv` file containing the generated architecture. Train the network using the following command:
+This will save a `.csv` file containing the generated architecture.
+
+**3. Train the highest ranking student network**  
+Train the network using the following command:
 ```bash
 python train.py student -t wrn_40_2 -s wrn_40_2_<genotype-num> --wrn_depth 40 --wrn_width 2 --data_loc='<path-to-data>'  --GPU 0 --from_genotype './genotypes/<genotype-num>.csv'
 ```
@@ -45,7 +65,8 @@ https://github.com/ShichenLiu/CondenseNet
 
 ## Citing us
 If you find this work helpful, please consider citing us:
-```
+
+```bibtex
 @inproceedings{
 Turner2020BlockSwap:,
 title={BlockSwap: Fisher-guided Block Substitution for Network Compression on a Budget},

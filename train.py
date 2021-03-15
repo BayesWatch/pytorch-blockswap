@@ -1,4 +1,3 @@
-''''Writing everything into one script..'''
 from __future__ import print_function
 import torch
 import torch.nn as nn
@@ -270,7 +269,7 @@ if __name__ == '__main__':
         net.load_state_dict(net_checkpoint['net'])
         return net, start_epoch
 
-
+    # if first training the teacher network alone
     if args.mode == 'teacher':
 
         print('Mode Teacher: Making a teacher network from scratch and training it...')
@@ -288,7 +287,7 @@ if __name__ == '__main__':
             scheduler.step()
             validate(teach, args.teacher_checkpoint)
 
-
+    # if you already have the teacher and you want to train a student
     elif args.mode == 'student':
         print('Mode Student: First, load a teacher network and convert for (optional) attention transfer')
         teach, _ = load_network('checkpoints/%s.t7' % args.teacher_checkpoint)

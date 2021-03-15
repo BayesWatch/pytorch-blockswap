@@ -10,7 +10,6 @@ import os
 from copy import deepcopy
 import glob
 import numpy as np
-#### DICTIONARIES FOR CONVERTING BETWEEN STRING AND CLASS
 
 string_to_conv = {
     'Conv' : Conv,
@@ -37,34 +36,6 @@ string_to_conv = {
     'G4B4' :     G4B4,
     'G2B4' :     G2B4,
 }
-
-conv_to_string = {
-    Conv : 'Conv',
-    DConvA2 : 'DConvA2',
-    DConvA4 : 'DConvA4',
-    DConvA8 :  'DConvA8',
-    DConvA16 : 'DConvA16',
-    DConvG16 : 'DConvG16',
-    DConvG8 :  'DConvG8',
-    DConvG4 :  'DConvG4',
-    DConvG2 :  'DConvG2',
-    DConv :    'DConv',
-    ConvB2 :   'ConvB2',
-    ConvB4 :   'ConvB4',
-    A2B2 :     'A2B2',
-    A4B2 :     'A4B2',
-    A8B2 :     'A8B2',
-    A16B2 :    'A16B2',
-    G16B2 :    'G16B2',
-    G8B2 :     'G8B2',
-    G8B4 :     'G8B4',
-    G4B2 :     'G4B2',
-    G2B2 :     'G2B2',
-    G4B4 :     'G4B4',
-    G2B4 :     'G2B4',
-}
-
-####
 
 def distillation(y, teacher_scores, labels, T, alpha):
     return F.kl_div(F.log_softmax(y/T, dim=1), F.softmax(teacher_scores/T, dim=1)) * (T*T * 2. * alpha)\

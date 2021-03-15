@@ -41,7 +41,7 @@ def generate_archs():
 
     p_dict = {}
 
-    opts = list(conv_to_string.keys())  # conv_to_string lives in utils.py and is a dictionary of available convs
+    opts = list(string_to_conv.values())  # string_to_conv lives in utils.py and is a dictionary of available convs
     for o in opts:
         params = []
         for (in_, out_) in sizes:
@@ -159,7 +159,7 @@ best = np.argmax(scores)
 print(scores)
 print(best)
 
-best_geno = geno = [conv_to_string[conv] for conv in candidates[best]]
+best_geno = geno = [conv.__class__.__name__ for conv in candidates[best]]
 best = pd.DataFrame({'index': [0], 'convs': [best_geno], 'fisher': [0.]})
 best.to_csv('genotypes/' + args.save_file + str('best') + '.csv')
 
@@ -168,8 +168,9 @@ THE_END = time.time()
 # Finally, write out
 df = pd.DataFrame(columns=['convs', 'fisher'])
 for i, geno in enumerate(candidates):
-    geno = [conv_to_string[conv] for conv in geno]
+    geno = [conv.__class__.__name__ for conv in geno]
     df.loc[i] = [geno] + [scores[i]]
+
 df.to_csv('genotypes/' + args.save_file + str('all') + '.csv')
 print('Done.')
 print(THE_END - THE_START)
