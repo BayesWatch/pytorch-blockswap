@@ -11,7 +11,7 @@ For a network composed of *N* stacked blocks, BlockSwap (uniformly) randomly sug
 Install the requirements via [anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html#):
 
 ```
-
+conda env create -f environment.yml
 ```
 
 ## Repository layout
